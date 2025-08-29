@@ -1,0 +1,142 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: travel-agency-cars
+  title: Travel Agency Cars Service
+  description: |
+    Cars microservice from the Kiali Travel Agency demo. This service handles 
+    car rental operations and integrates with the travel booking platform.
+    Part of a service mesh demonstration using Istio and Kiali.
+  labels:
+    example.com/custom: travel-demo
+  annotations:
+    github.com/project-slug: kiali/demos
+    backstage.io/kubernetes-id: cars
+    backstage.io/kubernetes-namespace: travel-agency
+    sonarqube.org/project-key: kiali_demos_cars
+  tags:
+    - microservice
+    - travel
+    - demo
+    - istio
+    - service-mesh
+    - kiali
+    - golang
+    - kubernetes
+    - openshift
+  links:
+    - url: https://kiali.io/docs/tutorials/travels/
+      title: Travel Demo Tutorial
+      icon: docs
+    - url: https://github.com/kiali/demos/tree/master/travels
+      title: Source Code
+      icon: github
+spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team
+  system: travel-agency
+  providesApis:
+    - travel-agency-cars-api
+  consumesApis:
+    - travel-agency-discounts-api
+    - travel-agency-mysql-api
+  dependsOn:
+    - resource:travel-agency-mysql
+    - component:travel-agency-discounts
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: travel-agency-cars-api
+  title: Cars Service API
+  description: REST API for car rental operations
+  tags:
+    - rest
+    - microservice
+    - travel
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: platform-team
+  system: travel-agency
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Cars Service API
+      version: 1.0.0
+      description: API for managing car rentals in the travel agency system
+    paths:
+      /cars:
+        get:
+          summary: Get available cars
+          responses:
+            '200':
+              description: List of available cars
+      /health:
+        get:
+          summary: Health check endpoint
+          responses:
+            '200':
+              description: Service is healthy
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: travel-agency-mysql
+  title: Travel Agency MySQL Database
+  description: Shared MySQL database for travel agency services
+  tags:
+    - database
+    - mysql
+    - shared
+spec:
+  type: database
+  owner: platform-team
+  system: travel-agency
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: travel-agency
+  title: Travel Agency System
+  description: |
+    Complete travel booking system demonstrating microservices architecture
+    with service mesh capabilities using Istio and observability with Kiali.
+  tags:
+    - travel
+    - microservices
+    - demo
+    - service-mesh
+spec:
+  owner: platform-team
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-team
+  title: Platform Team
+  description: Team responsible for platform and infrastructure
+spec:
+  type: team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: travel-agency-components
+  title: Travel Agency Demo Components
+  description: All components from the Kiali travel agency demo
+spec:
+  targets:
+    - ./travels/travel_agency/cars/
+    - ./travels/travel_agency/discounts/
+    - ./travels/travel_agency/flights/
+    - ./travels/travel_agency/hotels/
+    - ./travels/travel_agency/insurances/
+    - ./travels/travel_agency/travels/
