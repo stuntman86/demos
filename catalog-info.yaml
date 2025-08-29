@@ -1,41 +1,9 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: travel-agency-cars
-  title: Travel Agency Cars Service
-  description: Cars microservice from the Kiali Travel Agency demo
+  name: demos
   annotations:
     github.com/project-slug: stuntman86/demos
-    backstage.io/kubernetes-id: cars
-  tags:
-    - microservice
-    - travel
-    - demo
-    - istio
-    - kiali
-    - golang
-  links:
-    - url: https://kiali.io/docs/tutorials/travels/
-      title: Travel Demo Tutorial
-    - url: https://github.com/stuntman86/demos/tree/master/travels
-      title: Source Code
 spec:
-  type: service
-  lifecycle: experimental
-  owner: team-platform
-  system: travel-agency
-
----
-apiVersion: backstage.io/v1alpha1
-kind: System
-metadata:
-  name: travel-agency
-  title: Travel Agency System  
-  description: Complete travel booking system demonstrating microservices architecture
-  tags:
-    - travel
-    - microservices
-    - demo
-    - service-mesh
-spec:
-  owner: team-platform
+  type: other
+  lifecycle: unknown
