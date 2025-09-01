@@ -1,76 +1,28 @@
-# Notice the v1beta3 version
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
-# some metadata about the template itself
 metadata:
-  name: travel-cars-service
-  title: Travel Cars Microservice
-  description: Create a new cars microservice based on the Kiali Travel Agency demo
-  tags:
-    - recommended
-    - microservice
-    - travel
-    - cars
-    - golang
-    - istio
+  name: simple-cars-service
+  title: Simple Cars Service
+  description: Just copy the 3 cars files - simple test
 spec:
   owner: uk-ssa
   type: service
   
-  # these are the steps which are rendered in the frontend with the form input
   parameters:
-    - title: Fill in some steps
+    - title: Basic Info
       required:
         - name
-        - description
       properties:
         name:
-          title: Name
+          title: Service Name
           type: string
-          description: Unique name of the component (e.g., my-cars-service)
+          description: Name for your new cars service
           pattern: '^[a-z0-9-]+$'
-          ui:autofocus: true
-          ui:help: 'Only lowercase letters, numbers, and hyphens allowed'
-        description:
-          title: Description
-          type: string
-          description: Help others understand what this service does
-          default: A cars rental microservice for travel bookings
-          ui:widget: textarea
-          ui:options:
-            rows: 3
         owner:
           title: Owner
           type: string
-          description: Owner of the component
+          description: Owner of the service
           default: uk-ssa
-          ui:field: OwnerPicker
-          ui:options:
-            catalogFilter:
-              kind: Group
-        system:
-          title: System
-          type: string
-          description: System this service belongs to
-          default: travel-agency
-    
-    - title: Service Configuration
-      properties:
-        port:
-          title: Service Port
-          type: number
-          description: Port the service will run on
-          default: 8000
-        database:
-          title: Include Database Connection
-          type: boolean
-          description: Include MySQL database connectivity
-          default: true
-        discounts:
-          title: Include Discounts Service Integration
-          type: boolean
-          description: Connect to discounts service for pricing
-          default: true
     
     - title: Choose a location
       required:
@@ -83,93 +35,52 @@ spec:
           ui:options:
             allowedHosts:
               - github.com
-            allowedOwners:
-              - stuntman86
-              - uk-ssa
 
-  # here's the steps that are executed in series in the scaffolder backend
   steps:
-    - id: fetch-base
-      name: Fetch Cars Service Template
-      action: fetch:template
-      input:
-        url: https://github.com/stuntman86/demos/tree/master/travels/travel_agency/cars
-        values:
-          name: ${{ parameters.name }}
-          description: ${{ parameters.description }}
-          owner: ${{ parameters.owner }}
-          system: ${{ parameters.system }}
-          port: ${{ parameters.port }}
-          database_enabled: ${{ parameters.database }}
-          discounts_enabled: ${{ parameters.discounts }}
-
-    - id: fetch-k8s-manifests
-      name: Fetch Kubernetes Manifests
+    - id: fetch-cars
+      name: Fetch Cars Files Only
       action: fetch:plain
       input:
-        targetPath: ./k8s
-        url: https://github.com/stuntman86/demos/tree/master/travels/travel_agency
-        
-    - id: create-catalog-info
-      name: Create Catalog Info
-      action: fetch:template
+        url: https://github.com/stuntman86/demos/tree/master/travels/travel_agency/cars
+        targetPath: ./
+
+    - id: create-catalog
+      name: Create Simple Catalog Info
+      action: fs:write
       input:
-        url: ./skeleton/catalog-info
-        values:
-          name: ${{ parameters.name }}
-          description: ${{ parameters.description }}
-          owner: ${{ parameters.owner }}
-          system: ${{ parameters.system }}
+        path: catalog-info.yaml
+        content: |
+          apiVersion: backstage.io/v1alpha1
+          kind: Component
+          metadata:
+            name: ${{ parameters.name }}
+            description: Simple cars service
+            annotations:
+              github.com/project-slug: ${{ parameters.repoUrl | parseRepoUrl | pick('owner') }}/${{ parameters.repoUrl | parseRepoUrl | pick('repo') }}
+          spec:
+            type: service
+            lifecycle: experimental
+            owner: ${{ parameters.owner }}
 
     - id: publish
       name: Publish to GitHub
       action: publish:github
       input:
         allowedHosts: ['github.com']
-        description: ${{ parameters.description }}
+        description: Simple cars service with 3 files
         repoUrl: ${{ parameters.repoUrl }}
-        defaultBranch: main
-        gitCommitMessage: 'Initial commit: ${{ parameters.name }} cars service'
-        gitAuthorName: 'Backstage Scaffolder'
-        gitAuthorEmail: 'noreply@backstage.io'
 
     - id: register
-      name: Register in Software Catalog
+      name: Register in Catalog
       action: catalog:register
       input:
         repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
         catalogInfoPath: '/catalog-info.yaml'
 
-    - id: create-pr
-      name: Create Pull Request (Optional)
-      action: publish:github:pull-request
-      if: ${{ parameters.createPR }}
-      input:
-        repoUrl: ${{ parameters.repoUrl }}
-        title: 'feat: Add ${{ parameters.name }} cars service'
-        branchName: 'feature/add-${{ parameters.name }}'
-        description: |
-          ## New Cars Service: ${{ parameters.name }}
-          
-          This PR adds a new cars microservice based on the Kiali Travel Agency demo.
-          
-          ### Features:
-          - **Service Port**: ${{ parameters.port }}
-          - **Database**: ${{ parameters.database }}
-          - **Discounts Integration**: ${{ parameters.discounts }}
-          
-          ### Owner: ${{ parameters.owner }}
-          ### System: ${{ parameters.system }}
-
-  # some outputs which are saved along with the job for use in the frontend
   output:
     links:
       - title: Repository
         url: ${{ steps['publish'].output.remoteUrl }}
-        icon: github
       - title: Open in catalog
         icon: catalog
         entityRef: ${{ steps['register'].output.entityRef }}
-      - title: View Kubernetes Manifests
-        url: ${{ steps['publish'].output.remoteUrl }}/tree/main/k8s
-        icon: kubernetes
