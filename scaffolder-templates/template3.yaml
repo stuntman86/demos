@@ -1,0 +1,80 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: edit-deployment-config
+  title: Edit Deployment Config
+  description: Quick access to edit any deployed application's configuration
+spec:
+  owner: uk-ssa
+  type: utility
+  
+  parameters:
+    - title: Select Application to Edit
+      required:
+        - appName
+        - namespace
+      properties:
+        appName:
+          title: Application Name
+          type: string
+          description: Name of the deployed application
+          ui:autofocus: true
+        namespace:
+          title: Namespace
+          type: string
+          description: Namespace where the app is deployed
+          default: travel-agency
+        resourceType:
+          title: Resource Type
+          type: string
+          description: Type of resource to edit
+          default: deployment
+          enum:
+            - deployment
+            - deploymentconfig
+            - service
+            - route
+            - configmap
+            - secret
+          enumNames:
+            - Deployment
+            - DeploymentConfig
+            - Service
+            - Route
+            - ConfigMap
+            - Secret
+
+    - title: Cluster Configuration
+      properties:
+        clusterConsoleUrl:
+          title: OpenShift Console URL
+          type: string
+          description: Your OpenShift cluster console URL
+          default: https://console-openshift-console.apps.your-cluster.com
+
+  steps:
+    - id: generate-links
+      name: Generate Config Links
+      action: debug:log
+      input:
+        message: |
+          Generating links for:
+          - App: ${{ parameters.appName }}
+          - Namespace: ${{ parameters.namespace }}
+          - Resource: ${{ parameters.resourceType }}
+          - Console: ${{ parameters.clusterConsoleUrl }}
+
+  output:
+    links:
+      - title: Edit ${{ parameters.resourceType | title }} in OpenShift Console
+        url: ${{ parameters.clusterConsoleUrl }}/k8s/ns/${{ parameters.namespace }}/${{ parameters.resourceType }}s/${{ parameters.appName }}
+        icon: settings
+      - title: View All Resources for ${{ parameters.appName }}
+        url: ${{ parameters.clusterConsoleUrl }}/search/ns/${{ parameters.namespace }}?q=${{ parameters.appName }}
+        icon: search
+      - title: Namespace Overview
+        url: ${{ parameters.clusterConsoleUrl }}/k8s/cluster/projects/${{ parameters.namespace }}
+        icon: dashboard
+      - title: Application Topology
+        url: ${{ parameters.clusterConsoleUrl }}/topology/ns/${{ parameters.namespace }}?searchQuery=${{ parameters.appName }}
+        icon: network
