@@ -1,0 +1,62 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: simple-cars-service
+  title: Simple Cars Service
+  description: Just copy the 3 cars files - simple test
+spec:
+  owner: uk-ssa
+  type: service
+  
+  parameters:
+    - title: Basic Info
+      required:
+        - name
+      properties:
+        name:
+          title: Service Name
+          type: string
+          description: Name for your new cars service
+          pattern: '^[a-z0-9-]+$'
+        owner:
+          title: Owner
+          type: string
+          description: Owner of the service
+          default: uk-ssa
+    
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    - id: fetch-cars
+      name: Fetch Cars Files Only
+      action: fetch:plain
+      input:
+        url: https://github.com/stuntman86/demos/tree/master/travels/travel_agency/cars
+        targetPath: ./
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: Simple cars service with 3 files
+        repoUrl: ${{ parameters.repoUrl }}
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+        icon: github
+      - title: Open in DevSpaces
+        url: https://devspaces.apps.au9yyq0p.eastus.aroapp.io/#${{ steps['publish'].output.remoteUrl }}
+        icon: cloud
