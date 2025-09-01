@@ -44,24 +44,6 @@ spec:
         url: https://github.com/stuntman86/demos/tree/master/travels/travel_agency/cars
         targetPath: ./
 
-    - id: create-catalog
-      name: Create Simple Catalog Info
-      action: fs:write
-      input:
-        path: catalog-info.yaml
-        content: |
-          apiVersion: backstage.io/v1alpha1
-          kind: Component
-          metadata:
-            name: ${{ parameters.name }}
-            description: Simple cars service
-            annotations:
-              github.com/project-slug: ${{ parameters.repoUrl | parseRepoUrl | pick('owner') }}/${{ parameters.repoUrl | parseRepoUrl | pick('repo') }}
-          spec:
-            type: service
-            lifecycle: experimental
-            owner: ${{ parameters.owner }}
-
     - id: publish
       name: Publish to GitHub
       action: publish:github
